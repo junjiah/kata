@@ -1,5 +1,5 @@
 function getTotalFromCoins(coins) {
-  const reduceFn = (acc, curr) => acc + Number(curr) * coins[curr];
+	const reduceFn = (acc, curr) => acc + Number(curr) * coins[curr];
 	return Object.keys(coins).reduce(reduceFn, 0);
 }
 
@@ -9,70 +9,70 @@ function VendingMachine(coins) {
 
 VendingMachine.prototype.vending = function(price, inserted) {
 	// Only keep valid coins. Also record invalid coins.
-  const invalidCoins = {};
-  const validCoins = {};
-  for (const c of Object.keys(inserted)) {
-    (this.coins[c] === undefined ? invalidCoins : validCoins)[c] = inserted[c];
-  }
+	const invalidCoins = {};
+	const validCoins = {};
+	for (const c of Object.keys(inserted)) {
+		(this.coins[c] === undefined ? invalidCoins : validCoins)[c] = inserted[c];
+	}
 
 	const insertedPrice = getTotalFromCoins(validCoins);
 	if (insertedPrice < price) {
-    // Return whatever is inserted.
+		// Return whatever is inserted.
 		return inserted;
 	}
 
-  // Merge valid coins with existing ones, and represent as a sorted list.
-  Object.keys(validCoins).forEach(c => this.coins[c] += validCoins[c]);
-  const coins = Object.keys(this.coins)
-    .map(Number)
-    .sort((a, b) => b - a)
-    .map(c => [c, this.coins[c]]);
+	// Merge valid coins with existing ones, and represent as a sorted list.
+	Object.keys(validCoins).forEach(c => this.coins[c] += validCoins[c]);
+	const coins = Object.keys(this.coins)
+		.map(Number)
+		.sort((a, b) => b - a)
+		.map(c => [c, this.coins[c]]);
 
-  const exchange = insertedPrice - price;
+	const exchange = insertedPrice - price;
 
-  // Dynamic programming. An array mapping price to required coin combination.
-  const coinCombos = [];
-  for (const [coin, number] of coins) {
-    if (number > 0) {
-      coinCombos[coin] = {[coin]: 1};
-    }
-  }
-  const minCoin = coins[coins.length - 1][0];
-  for (let i = minCoin; i <= exchange; ++i) {
-    const combo = coinCombos[i];
-    if (combo) {
-      continue;
-    }
+	// Dynamic programming. An array mapping price to required coin combination.
+	const coinCombos = [];
+	for (const [coin, number] of coins) {
+		if (number > 0) {
+			coinCombos[coin] = {[coin]: 1};
+		}
+	}
+	const minCoin = coins[coins.length - 1][0];
+	for (let i = minCoin; i <= exchange; ++i) {
+		const combo = coinCombos[i];
+		if (combo) {
+			continue;
+		}
 
-    // Loop through available coins.
-    for (const [c, n] of coins) {
-      const prevCombo = coinCombos[i - c];
-      if (!prevCombo) {
-        // Can't reach that combination.
-        continue;
-      }
-      const used = prevCombo[c] || 0;
-      if (n <= used) {
-        // Coin used up.
-        continue;
-      }
-      coinCombos[i] = Object.assign({}, prevCombo, {[c]: used + 1});
-      break;
-    }
-  }
-  
-  // Return the combo near `exchange`.
-  let toReturn = {};
-  for (let i = exchange; i >= minCoin; --i) {
-    if (coinCombos[i]) {
-      toReturn = coinCombos[i];
-      // Substract coins from existing collection.
-      Object.keys(toReturn).forEach(c => this.coins[c] -= toReturn[c]);
-      break;
-    }
-  } 
-  // Add invalid coins to return.
-  return Object.assign(toReturn, invalidCoins);
+		// Loop through available coins.
+		for (const [c, n] of coins) {
+			const prevCombo = coinCombos[i - c];
+			if (!prevCombo) {
+				// Can't reach that combination.
+				continue;
+			}
+			const used = prevCombo[c] || 0;
+			if (n <= used) {
+				// Coin used up.
+				continue;
+			}
+			coinCombos[i] = Object.assign({}, prevCombo, {[c]: used + 1});
+			break;
+		}
+	}
+
+	// Return the combo near `exchange`.
+	let toReturn = {};
+	for (let i = exchange; i >= minCoin; --i) {
+		if (coinCombos[i]) {
+			toReturn = coinCombos[i];
+			// Substract coins from existing collection.
+			Object.keys(toReturn).forEach(c => this.coins[c] -= toReturn[c]);
+			break;
+		}
+	}
+	// Add invalid coins to return.
+	return Object.assign(toReturn, invalidCoins);
 }
 
 
