@@ -1,4 +1,4 @@
-module Main where
+module Rule30 where
 
 import           Data.Vector ((!?))
 import qualified Data.Vector as V
